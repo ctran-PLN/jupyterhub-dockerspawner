@@ -22,11 +22,13 @@ COPY ./userlist /srv/jupyterhub/userlist
 COPY ./logo/vibrent.png /opt/conda/share/jupyterhub/static/images/jupyter.png
 COPY ./styles/style.min.css /opt/conda/share/jupyterhub/static/css/style.min.css
 
-ARG USER=ctran
-ARG UID=999
-ARG GID=999
 # default password for user
 ARG PW=pass
+RUN while read line; do \
+      USER=$(echo $line | awk '{print $1;}'); \
+      echo 'Adding user' ${USER}; \
+      useradd -m ${USER} && echo "${USER}:${PW}" | chpasswd; \
+    done </srv/jupyterhub/userlist  
 # # Option1: Using unencrypted password/ specifying password
-RUN useradd -m ${USER} --uid=${UID} && echo "${USER}:${PW}" | \
-       chpasswd
+#RUN useradd -m ${USER} --uid=${UID} && echo "${USER}:${PW}" | \
+#       chpasswd
