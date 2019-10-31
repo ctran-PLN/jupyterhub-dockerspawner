@@ -12,6 +12,10 @@ volumes:
 	@docker volume inspect $(DATA_VOLUME_HOST) >/dev/null 2>&1 || docker volume create --name $(DATA_VOLUME_HOST)
 	@docker volume inspect $(DB_VOLUME_HOST) >/dev/null 2>&1 || docker volume create --name $(DB_VOLUME_HOST)
 
+shared-volume:
+	@docker volume inspect $(SHARED_VOLUME) >/dev/null 2>&1 || docker volume create --name $(SHARED_VOLUME)
+	sudo chmod 777 /var/lib/docker/volumes/$(SHARED_VOLUME)/_data
+
 self-signed-cert:
 	# make a self-signed cert
 
@@ -56,7 +60,7 @@ notebook_image: pull singleuser/Dockerfile
 		--build-arg DOCKER_NOTEBOOK_IMAGE=$(DOCKER_NOTEBOOK_IMAGE) \
 		singleuser
 
-build: check-files network volumes
+build: check-files network volumes shared-volume
 	docker-compose build
 
 .PHONY: network volumes check-files pull notebook_image build
