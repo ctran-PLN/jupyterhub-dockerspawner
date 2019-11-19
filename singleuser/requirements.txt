@@ -1,0 +1,16 @@
+#jupyterHub
+jupyterhub
+
+# base requirements
+requests
+notebook
+ipywidgets
+
+# scientific requirements
+cufflinks
+networkx
+numpy
+scipy
+pandas
+plotly
+sympy
