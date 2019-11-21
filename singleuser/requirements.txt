@@ -1,6 +1,6 @@
 # base requirements
 jupyterhub
-notebook>6
+notebook
 tornado<6
 cython
 

@@ -8,7 +8,7 @@ RUN min-apk openblas-dev && \
 echo "**** install requirements ****" && \
     min-pip3 -r /tmp/${REQ_FILE}
 
-ARG NB_USER="vibrent"
+ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
 

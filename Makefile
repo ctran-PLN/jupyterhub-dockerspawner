@@ -16,9 +16,6 @@ shared-volume:
 	@docker volume inspect $(SHARED_VOLUME) >/dev/null 2>&1 || docker volume create --name $(SHARED_VOLUME)
 	#sudo chmod 777 /var/lib/docker/volumes/$(SHARED_VOLUME)/_data
 
-self-signed-cert:
-	# make a self-signed cert
-
 secrets/postgres.env:
 	@echo "Generating postgres password in $@"
 	@echo "POSTGRES_PASSWORD=$(shell openssl rand -hex 32)" > $@
@@ -49,7 +46,7 @@ check-files: userlist $(cert_files) secrets/postgres.env
 
 gen-cert:
 	@mkdir -p secrets
-	@openssl req -x509 -nodes -newkey rsa:2048 -keyout jupyterhub.key -out jupyterhub.crt
+	@echo "us\n\n\n\n\n\n" | openssl req -x509 -nodes -newkey rsa:2048 -keyout jupyterhub.key -out jupyterhub.crt
 	@mv jupyterhub.crt jupyterhub.key secrets/
 
 notebook_image: pull singleuser/Dockerfile
