@@ -1,5 +1,3 @@
-# Copyright (c) Jupyter Development Team.
-# Distributed under the terms of the Modified BSD License.
 ARG JUPYTERHUB_VERSION
 FROM jupyterhub/jupyterhub-onbuild:$JUPYTERHUB_VERSION
 
@@ -8,7 +6,8 @@ RUN /opt/conda/bin/conda clean -tipsy && \
     /opt/conda/bin/conda install -yq psycopg2=2.7 && \
     /opt/conda/bin/pip install --no-cache-dir \
         oauthenticator==0.8.* \
-        dockerspawner==0.9.*
+        dockerspawner==0.9.* \
+        jupyterhub-nativeauthenticator
 
 # Copy TLS certificate and key
 ENV SSL_CERT /srv/jupyterhub/secrets/jupyterhub.crt
@@ -20,6 +19,7 @@ RUN chmod 700 /srv/jupyterhub/secrets && \
 
 COPY ./userlist /srv/jupyterhub/userlist
 COPY ./logo/vibrent.png /opt/conda/share/jupyterhub/static/images/jupyter.png
+COPY ./html/login.html /opt/conda/share/jupyterhub/templates/login.html
 COPY ./styles/style.min.css /opt/conda/share/jupyterhub/static/css/style.min.css
 
 # default password for user
@@ -28,7 +28,4 @@ RUN while read line; do \
       USER=$(echo $line | awk '{print $1;}'); \
       echo 'Adding user' ${USER}; \
       useradd -m ${USER} && echo "${USER}:${PW}" | chpasswd; \
-    done </srv/jupyterhub/userlist  
-# # Option1: Using unencrypted password/ specifying password
-#RUN useradd -m ${USER} --uid=${UID} && echo "${USER}:${PW}" | \
-#       chpasswd
+    done </srv/jupyterhub/userlist

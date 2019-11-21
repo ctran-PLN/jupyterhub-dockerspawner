@@ -12,7 +12,6 @@ services:
       - secrets/postgres.env
     volumes:
       - db:${DB_VOLUME_CONTAINER}
-
   hub:
     depends_on:
       - hub-db
@@ -51,7 +50,7 @@ services:
       - secrets/postgres.env
     command: >
       jupyterhub -f /srv/jupyterhub/jupyterhub_config.py
-      
+
 volumes:
   data:
     external:

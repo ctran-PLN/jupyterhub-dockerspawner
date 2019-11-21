@@ -1,34 +1,14 @@
-FROM alpine:latest
+FROM nbgallery/jupyter-alpine
 
 # PYTHON DATA SCIENCE PACKAGES
 ARG REQ_FILE='requirements.txt'
 COPY ${REQ_FILE} /tmp/${REQ_FILE}
 
-RUN apk update \
-&& apk add \
-    ca-certificates \
-    libstdc++ \
-    python3 \
-    tini \
-&& apk add --virtual=build_dependencies \
-    cmake \
-    gcc \
-    g++ \
-    make \
-    musl-dev \
-    python3-dev \
-    libressl-dev \
-    libffi-dev \
-    build-base \
-    openblas-dev freetype-dev pkgconfig gfortran \
-&& ln -s /usr/include/locale.h /usr/include/xlocale.h \
-&& python3 -m pip --no-cache-dir install -r /tmp/${REQ_FILE} \
-&& jupyter nbextension enable --py widgetsnbextension \
-&& apk del --purge -r build_dependencies \
-&& rm -rf /var/cache/apk/* \
-&& jupyter nbextension enable --py widgetsnbextension
+RUN min-apk openblas-dev && \
+echo "**** install requirements ****" && \
+    min-pip3 -r /tmp/${REQ_FILE}
 
-ARG NB_USER="jovyan"
+ARG NB_USER="vibrent"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
 
@@ -39,15 +19,17 @@ ENV SHELL=/bin/bash \
     NB_GID=$NB_GID \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8
-ENV HOME=/home/$NB_USER
+    LANGUAGE=en_US.UTF-8 \
+    KERNEL=/usr/share/jupyter/kernels \
+    HOME=/home/$NB_USER
 
 # Setup work directory for backward-compatibility
-RUN apk add --no-cache --upgrade bash \
-    && addgroup -g $NB_GID -S $NB_USER \
-    && adduser -u $NB_UID -S $NB_USER  \
+RUN addgroup -S $NB_GID  \
+    && adduser -u $NB_UID -S $NB_USER -G $NB_GID \
     && mkdir $HOME/work \
-    && chown -R $NB_USER:$NB_GID /home/$NB_USER
+    && chown -R $NB_USER:$NB_GID /home/$NB_USER \
+    # remove extra kernels
+    && cd $KERNEL && rm -rf c cpp go javascript octave pig python2 ruby spark_*
 
 USER $NB_UID
 WORKDIR $HOME
@@ -55,7 +37,7 @@ WORKDIR $HOME
 EXPOSE 8888
 
 # Configure container startup
-ENTRYPOINT ["tini", "-g", "--"]
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["start-notebook.sh"]
 
 # Add local files as late as possible to avoid cache busting

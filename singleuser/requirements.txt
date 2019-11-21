@@ -1,10 +1,8 @@
-#jupyterHub
-jupyterhub
-
 # base requirements
-requests
-notebook
-ipywidgets
+jupyterhub
+notebook>6
+tornado<6
+cython
 
 # scientific requirements
 cufflinks
@@ -14,3 +12,5 @@ scipy
 pandas
 plotly
 sympy
+joblib
+scikit-learn

@@ -31,12 +31,12 @@ c.DockerSpawner.extra_host_config = { 'network_mode': network_name }
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
 # user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
 # We follow the same convention.
-notebook_dir = os.environ.get('DOCKER_PERSIST_DIR') or '/home/jovyan/work'
+notebook_dir = os.environ.get('DOCKER_PERSIST_DIR') or '/home/vibrent/work'
 c.DockerSpawner.notebook_dir = notebook_dir
 # Mount the real user's Docker volume on the host to the notebook user's
 # notebook directory in the container
-c.DockerSpawner.volumes = { 'jupyterhub-user-{username}': notebook_dir, \
-			    'jupyterhub-shared' : '/home/jovyan/shared' }
+c.DockerSpawner.volumes = {  'jupyterhub-user-{username}': notebook_dir, \
+			    'jupyterhub-shared' : '/home/vibrent/shared' }
 
 
 # volume_driver is no longer a keyword argument to create_container()
@@ -58,8 +58,9 @@ c.JupyterHub.ssl_cert = os.environ['SSL_CERT']
 # Authenticate users with GitHub OAuth
 #c.JupyterHub.authenticator_class = 'oauthenticator.GitHubOAuthenticator'
 #c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
-c.LocalAuthenticator.create_system_users=True 
+#c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
+c.JupyterHub.authenticator_class = 'nativeauthenticator.NativeAuthenticator'
+c.LocalAuthenticator.create_system_users=True
 
 # Persist hub data on volume mounted inside container
 data_dir = os.environ.get('DATA_VOLUME_CONTAINER', '/data')
@@ -67,10 +68,6 @@ data_dir = os.environ.get('DATA_VOLUME_CONTAINER', '/data')
 c.JupyterHub.cookie_secret_file = os.path.join(data_dir,
     'jupyterhub_cookie_secret')
 
-print('***************')
-print(os.environ['POSTGRES_HOST'])
-print(os.environ['POSTGRES_PASSWORD'])
-print(os.environ['POSTGRES_DB'])
 c.JupyterHub.db_url = 'postgresql://postgres:{password}@{host}/{db}'.format(
     host=os.environ['POSTGRES_HOST'],
     password=os.environ['POSTGRES_PASSWORD'],
