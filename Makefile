@@ -47,11 +47,16 @@ endif
 
 check-files: userlist $(cert_files) secrets/postgres.env
 
+gen-cert:
+	@mkdir -p secrets
+	@openssl req -x509 -nodes -newkey rsa:2048 -keyout jupyterhub.key -out jupyterhub.crt
+	@mv jupyterhub.crt jupyterhub.key secrets/
+
 notebook_image: pull singleuser/Dockerfile
 	docker build -t $(LOCAL_NOTEBOOK_IMAGE) \
 		singleuser
 
-build: check-files network volumes shared-volume
+build: gen-cert check-files network volumes shared-volume
 	docker-compose build
 
 .PHONY: network volumes check-files pull notebook_image build
