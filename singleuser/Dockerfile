@@ -8,26 +8,26 @@ RUN min-apk openblas-dev && \
 echo "**** install requirements ****" && \
     min-pip3 -r /tmp/${REQ_FILE}
 
-ARG NB_USER="jovyan"
+ARG MY_USER=vibrent
 ARG NB_UID="1000"
 ARG NB_GID="1000"
 
 # Configure environment
 ENV SHELL=/bin/bash \
-    NB_USER=$NB_USER \
+    NB_USER=$MY_USER \
     NB_UID=$NB_UID \
     NB_GID=$NB_GID \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
-    KERNEL=/usr/share/jupyter/kernels \
-    HOME=/home/$NB_USER
+    KERNEL=/usr/share/jupyter/kernels
 
+ENV HOME=/home/$NB_USER
 # Setup work directory for backward-compatibility
 RUN addgroup -S $NB_GID  \
     && adduser -u $NB_UID -S $NB_USER -G $NB_GID \
     && mkdir $HOME/work \
-    && chown -R $NB_USER:$NB_GID /home/$NB_USER \
+    && chown -R $NB_USER:$NB_GID $HOME \
     # remove extra kernels
     && cd $KERNEL && rm -rf c cpp go javascript octave pig python2 ruby spark_*
 
