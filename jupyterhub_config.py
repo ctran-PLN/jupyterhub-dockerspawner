@@ -3,6 +3,7 @@
 
 # Configuration file for JupyterHub
 import os
+import sys
 
 c = get_config()
 
@@ -38,7 +39,6 @@ c.DockerSpawner.notebook_dir = notebook_dir
 c.DockerSpawner.volumes = {  'jupyterhub-user-{username}': notebook_dir, \
 			    'jupyterhub-shared' : '/home/vibrent/shared' }
 
-
 # volume_driver is no longer a keyword argument to create_container()
 # c.DockerSpawner.extra_create_kwargs.update({ 'volume_driver': 'local' })
 # Remove containers once they are stopped
@@ -55,12 +55,9 @@ c.JupyterHub.port = 443
 c.JupyterHub.ssl_key = os.environ['SSL_KEY']
 c.JupyterHub.ssl_cert = os.environ['SSL_CERT']
 
-# Authenticate users with GitHub OAuth
-#c.JupyterHub.authenticator_class = 'oauthenticator.GitHubOAuthenticator'
-#c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-#c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
-c.JupyterHub.authenticator_class = 'nativeauthenticator.NativeAuthenticator'
-c.LocalAuthenticator.create_system_users=True
+# Authenticate users with PAM
+c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
+#c.LocalAuthenticator.create_system_users=True
 
 # Persist hub data on volume mounted inside container
 data_dir = os.environ.get('DATA_VOLUME_CONTAINER', '/data')
@@ -74,6 +71,17 @@ c.JupyterHub.db_url = 'postgresql://postgres:{password}@{host}/{db}'.format(
     db=os.environ['POSTGRES_DB'],
     port=5433,
 )
+
+# shut down idle single-user notebook servers
+# default time: 30mins=30*60=1800
+hub_dir=os.environ['HUB_DIR']
+c.JupyterHub.services = [
+    {
+        'name': 'cull-idle',
+        'admin': True,
+        'command': [sys.executable, hub_dir+'services/cull_idle_servers.py', '--timeout=1800'],
+    }
+]
 
 # Whitlelist users and admins
 c.Authenticator.whitelist = whitelist = set()

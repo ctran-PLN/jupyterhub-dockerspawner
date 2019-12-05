@@ -20,6 +20,7 @@ services:
       dockerfile: Dockerfile.jupyterhub
       args:
         JUPYTERHUB_VERSION: ${JUPYTERHUB_VERSION}
+        HUB_DIR: ${HUB_DIR}
     restart: always
     image: jupyterhub
     container_name: jupyterhub
@@ -29,6 +30,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       # Bind Docker volume on host for JupyterHub database and cookie secrets
       - data:${DATA_VOLUME_CONTAINER}
+      # every time new users added
+      # call cp -p /etc/{passwd,group,shadow} /opt/jupyerUsers/
       - ./jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py
     ports:
       - "443:443"
@@ -46,6 +49,8 @@ services:
       # Postgres db info
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: hub-db
+      # hub directory
+      HUB_DIR: ${HUB_DIR}
     env_file:
       - secrets/postgres.env
     command: >

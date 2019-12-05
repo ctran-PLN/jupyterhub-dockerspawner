@@ -13,8 +13,11 @@ volumes:
 	@docker volume inspect $(DB_VOLUME_HOST) >/dev/null 2>&1 || docker volume create --name $(DB_VOLUME_HOST)
 
 shared-volume:
-	@docker volume inspect $(SHARED_VOLUME) >/dev/null 2>&1 || docker volume create --name $(SHARED_VOLUME)
-	#sudo chmod 777 /var/lib/docker/volumes/$(SHARED_VOLUME)/_data
+	@[ -d $(SHARED_DIR) ] || (sudo mkdir -p $(SHARED_DIR) && sudo chmod 777 $(SHARED_DIR))
+	@docker volume inspect $(SHARED_VOLUME_NAME) >/dev/null 2>&1 || docker volume create --opt type=none \
+																																      --opt device=$(SHARED_DIR) \
+																																      --opt o=bind \
+																																			--name $(SHARED_VOLUME_NAME)
 
 secrets/postgres.env:
 	@echo "Generating postgres password in $@"
@@ -46,11 +49,12 @@ check-files: userlist $(cert_files) secrets/postgres.env
 
 gen-cert:
 	@mkdir -p secrets
-	@echo "us\n\n\n\n\n\n" | openssl req -x509 -nodes -newkey rsa:2048 -keyout jupyterhub.key -out jupyterhub.crt
+	@openssl req -x509 -nodes -newkey rsa:2048 -keyout jupyterhub.key -out jupyterhub.crt \
+	-subj "/C=us/ST=va/L=fairfax/O=vibrent/OU= /CN= "
 	@mv jupyterhub.crt jupyterhub.key secrets/
 
 notebook_image: pull singleuser/Dockerfile
-	docker build -t $(LOCAL_NOTEBOOK_IMAGE) \
+	docker build  -t $(LOCAL_NOTEBOOK_IMAGE) --build-arg MY_USER=$(MY_USER) \
 		singleuser
 
 build: gen-cert check-files network volumes shared-volume
