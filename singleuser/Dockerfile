@@ -1,35 +1,41 @@
-FROM nbgallery/jupyter-alpine
+FROM frolvlad/alpine-miniconda3
 
 # PYTHON DATA SCIENCE PACKAGES
 ARG REQ_FILE='requirements.txt'
 COPY ${REQ_FILE} /tmp/${REQ_FILE}
 
-RUN min-apk openblas-dev && \
-echo "**** install requirements ****" && \
-    min-pip3 -r /tmp/${REQ_FILE}
-
 ARG MY_USER=vibrent
-ARG NB_UID="1000"
-ARG NB_GID="1000"
 
 # Configure environment
-ENV SHELL=/bin/bash \
-    NB_USER=$MY_USER \
-    NB_UID=$NB_UID \
-    NB_GID=$NB_GID \
-    LC_ALL=en_US.UTF-8 \
-    LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8 \
-    KERNEL=/usr/share/jupyter/kernels
+ENV NB_USER ${MY_USER}
+ENV NB_UID 1001
+ENV NB_GID 1001
+ENV HOME /home/$NB_USER
+ENV CONDA_DIR /opt/conda
+ENV PRE_COMMIT /etc/jupyter/pre-commit
 
-ENV HOME=/home/$NB_USER
-# Setup work directory for backward-compatibility
-RUN addgroup -S $NB_GID  \
-    && adduser -u $NB_UID -S $NB_USER -G $NB_GID \
-    && mkdir $HOME/work \
-    && chown -R $NB_USER:$NB_GID $HOME \
-    # remove extra kernels
-    && cd $KERNEL && rm -rf c cpp go javascript octave pig python2 ruby spark_*
+USER root
+RUN addgroup -S $NB_GID && \
+    adduser -s /bin/bash -u $NB_UID -D $NB_USER && \
+    mkdir $HOME/work && \
+    chown -R $NB_USER:$NB_GID $HOME && \
+    chown -R $NB_USER:$NB_GID $CONDA_DIR && \
+    conda config --add channels conda-forge
+
+# sys packages
+RUN apk --update --no-cache add git bash
+
+USER $NB_UID
+RUN echo "install python requirements" && \
+    while read requirement; \
+          do conda install --yes $requirement; \
+      done < /tmp/${REQ_FILE} && \
+echo "clean tmp files" && \
+    conda clean --all -f -y && \
+    rm -rf /home/$NB_USER/.cache/yarn && \
+nbdime extensions --enable
+
+#RUN git clone https://github.com/ctran-vibrent/MSDS_462_final.git $HOME/test_git
 
 USER $NB_UID
 WORKDIR $HOME
@@ -37,11 +43,16 @@ WORKDIR $HOME
 EXPOSE 8888
 
 # Configure container startup
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["tini", "-g", "--"]
 CMD ["start-notebook.sh"]
 
 # Add local files as late as possible to avoid cache busting
+ADD config/pre-commit $PRE_COMMIT
+COPY config/git-clone-hook $HOME/.profile
+#USER root
+#RUN chown $NB_USER:$NB_GID $HOME/.profile
+#USER $NB_UID
 COPY start.sh /usr/local/bin/
 COPY start-notebook.sh /usr/local/bin/
 COPY start-singleuser.sh /usr/local/bin/
-COPY jupyter_notebook_config.py /etc/jupyter/
+#COPY jupyter_notebook_config.py /etc/jupyter/

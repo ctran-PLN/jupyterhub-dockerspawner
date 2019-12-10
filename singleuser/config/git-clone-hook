@@ -1,0 +1,18 @@
+git() {
+   if [[ $1 == "clone" ]]; then
+      if [ "$#" -ne 3 ];
+        then
+            echo "INCORRECT format";
+            echo "RIGHT format:
+              git clone <url> <directory>";
+        else
+            for repo in $@; do :; done
+            echo "clone path : $repo";
+            command git "$@";
+            cp $PRE_COMMIT $repo/.git/hooks;
+            echo "added pre-commit";
+        fi;
+   else
+      command git "$@";
+   fi;
+}

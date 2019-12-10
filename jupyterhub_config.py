@@ -74,6 +74,7 @@ c.JupyterHub.db_url = 'postgresql://postgres:{password}@{host}/{db}'.format(
 
 # shut down idle single-user notebook servers
 # default time: 30mins=30*60=1800
+'''
 hub_dir=os.environ['HUB_DIR']
 c.JupyterHub.services = [
     {
@@ -82,7 +83,7 @@ c.JupyterHub.services = [
         'command': [sys.executable, hub_dir+'services/cull_idle_servers.py', '--timeout=1800'],
     }
 ]
-
+'''
 # Whitlelist users and admins
 c.Authenticator.whitelist = whitelist = set()
 c.Authenticator.admin_users = admin = set()
