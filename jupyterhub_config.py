@@ -5,6 +5,22 @@
 import os
 import sys
 
+whitelist = set()
+admin = set()
+
+from dockerspawner import DockerSpawner
+class MyDockerSpawner(DockerSpawner):
+	adminList = admin
+	def start(self):
+		HOME = '/home/vibrent'
+		self.volumes = {
+			'jupyterhub-user-{username}': HOME + '/work',
+			 os.environ['RELEASE_VOLUME_NAME'] : HOME + '/RELEASE'
+		}
+		if self.user.name in self.adminList:
+			self.volumes[os.environ['SHARED_VOLUME_NAME']] =  HOME + '/shared'
+		return super().start()
+
 c = get_config()
 
 # We rely on environment variables to configure JupyterHub so that we
@@ -12,7 +28,8 @@ c = get_config()
 # configuration parameter.
 
 # Spawn single-user servers as Docker containers
-c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
+#c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
+c.JupyterHub.spawner_class = MyDockerSpawner
 # Spawn containers from this image
 c.DockerSpawner.container_image = os.environ['DOCKER_NOTEBOOK_IMAGE']
 # JupyterHub requires a single-user instance of the Notebook server, so we
@@ -30,14 +47,10 @@ c.DockerSpawner.network_name = network_name
 c.DockerSpawner.extra_host_config = { 'network_mode': network_name }
 # Explicitly set notebook directory because we'll be mounting a host volume to
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
-# user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
+# user `vibrent`, and set the notebook directory to `/home/vibrent/work`.
 # We follow the same convention.
 notebook_dir = os.environ.get('DOCKER_PERSIST_DIR') or '/home/vibrent/work'
 c.DockerSpawner.notebook_dir = notebook_dir
-# Mount the real user's Docker volume on the host to the notebook user's
-# notebook directory in the container
-c.DockerSpawner.volumes = {  'jupyterhub-user-{username}': notebook_dir, \
-			    'jupyterhub-shared' : '/home/vibrent/shared' }
 
 # volume_driver is no longer a keyword argument to create_container()
 # c.DockerSpawner.extra_create_kwargs.update({ 'volume_driver': 'local' })
@@ -85,18 +98,17 @@ c.JupyterHub.services = [
 ]
 '''
 # Whitlelist users and admins
-c.Authenticator.whitelist = whitelist = set()
-c.Authenticator.admin_users = admin = set()
+c.Authenticator.whitelist = whitelist
+c.Authenticator.admin_users = admin
 c.JupyterHub.admin_access = True
 pwd = os.path.dirname(__file__)
 with open(os.path.join(pwd, 'userlist')) as f:
-    for line in f:
-        if not line:
-            continue
-        parts = line.split()
-        # in case of newline at the end of userlist file
-        if len(parts) >= 1:
-            name = parts[0]
-            whitelist.add(name)
-            if len(parts) > 1 and parts[1] == 'admin':
-                admin.add(name)
+	for line in f:
+		if not line:
+			continue
+		parts = line.split()
+		if len(parts) >= 1:
+			name = parts[0]
+			whitelist.add(name)
+			if len(parts) > 1 and parts[1] == 'admin':
+				admin.add(name)

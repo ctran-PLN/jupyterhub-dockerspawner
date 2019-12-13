@@ -51,6 +51,9 @@ services:
       POSTGRES_HOST: hub-db
       # hub directory
       HUB_DIR: ${HUB_DIR}
+      # volumes env
+      SHARED_VOLUME_NAME: ${SHARED_VOLUME_NAME}
+      RELEASE_VOLUME_NAME: ${RELEASE_VOLUME_NAME}
     env_file:
       - secrets/postgres.env
     command: >
