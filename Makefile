@@ -62,7 +62,9 @@ gen-cert:
 
 notebook_image: pull singleuser/Dockerfile
 	docker build  -t $(LOCAL_NOTEBOOK_IMAGE) --build-arg MY_USER=$(MY_USER) \
-		singleuser
+																					 --build-arg API_HOST=$(API_HOST) \
+																					 --build-arg API_PORT=$(API_PORT) \
+																					 singleuser
 
 build: gen-cert check-files network volumes SHARED-volume RELEASE-volume
 	docker-compose build
