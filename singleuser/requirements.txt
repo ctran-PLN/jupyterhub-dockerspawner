@@ -1,9 +1,11 @@
 notebook
 jupyterhub
-nbdime
-nbstripout
-bokeh
 Bottleneck
+Pillow
+PyMySQL
+SQLAlchemy
+XlsxWriter
+bokeh
 dask
 descartes
 gensim
@@ -15,6 +17,8 @@ mpmath
 mysql
 mysql-connector-python
 mysqlclient
+nbdime
+nbstripout
 nltk
 numba
 numexpr
@@ -22,9 +26,7 @@ numpy
 openpyxl
 pandas
 patsy
-Pillow
 plotly
-PyMySQL
 pyodbc
 pytz
 requests
@@ -32,12 +34,11 @@ scikit-image
 scikit-learn
 scipy
 seaborn
-SQLAlchemy
 statsmodels
 tableauserverclient
 tini
 twilio
+vaex
 widgetsnbextension
 xlrd
-XlsxWriter
 xlwt

@@ -5,6 +5,8 @@ ARG REQ_FILE='requirements.txt'
 COPY ${REQ_FILE} /tmp/${REQ_FILE}
 
 ARG MY_USER=vibrent
+ARG API_HOST
+ARG API_PORT
 
 # Configure environment
 ENV NB_USER ${MY_USER}
@@ -13,6 +15,8 @@ ENV NB_GID 1001
 ENV HOME /home/$NB_USER
 ENV CONDA_DIR /opt/conda
 ENV PRE_COMMIT /etc/jupyter/pre-commit
+ENV API_HOST ${API_HOST}
+ENV API_PORT ${API_PORT}
 
 USER root
 RUN addgroup -S $NB_GID && \
@@ -35,8 +39,6 @@ echo "clean tmp files" && \
     rm -rf /home/$NB_USER/.cache/yarn && \
 nbdime extensions --enable
 
-#RUN git clone https://github.com/ctran-vibrent/MSDS_462_final.git $HOME/test_git
-
 USER $NB_UID
 WORKDIR $HOME
 
@@ -49,9 +51,7 @@ CMD ["start-notebook.sh"]
 # Add local files as late as possible to avoid cache busting
 ADD config/pre-commit $PRE_COMMIT
 COPY config/git-clone-hook $HOME/.profile
-#USER root
-#RUN chown $NB_USER:$NB_GID $HOME/.profile
-#USER $NB_UID
+
 COPY start.sh /usr/local/bin/
 COPY start-notebook.sh /usr/local/bin/
 COPY start-singleuser.sh /usr/local/bin/
