@@ -69,8 +69,16 @@ c.JupyterHub.ssl_key = os.environ['SSL_KEY']
 c.JupyterHub.ssl_cert = os.environ['SSL_CERT']
 
 # Authenticate users with PAM
-c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
-#c.LocalAuthenticator.create_system_users=True
+#c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
+c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
+c.LDAPAuthenticator.server_address = 'ldap://SHRDSRVSADDS01.awsvibhealth.local'
+c.LDAPAuthenticator.server_port = 389
+#c.LDAPAuthenticator.valid_username_regex= '^.*$'
+# active directory
+c.LDAPAuthenticator.bind_dn_template = 'AWSVIBHEALTH\{username}'
+c.LDAPAuthenticator.user_search_base = 'OU=Users,OU=Environment,DC=awsvibhealth,DC=local'
+c.LDAPAuthenticator.user_attribute = 'sAMAccountName'
+
 
 # Persist hub data on volume mounted inside container
 data_dir = os.environ.get('DATA_VOLUME_CONTAINER', '/data')
