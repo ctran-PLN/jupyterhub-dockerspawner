@@ -30,8 +30,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       # Bind Docker volume on host for JupyterHub database and cookie secrets
       - data:${DATA_VOLUME_CONTAINER}
-      # every time new users added
-      # call cp -p /etc/{passwd,group,shadow} /opt/jupyerUsers/
       - ./jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py
     ports:
       - "443:443"
@@ -57,7 +55,7 @@ services:
     env_file:
       - secrets/postgres.env
     command: >
-      jupyterhub -f /srv/jupyterhub/jupyterhub_config.py
+      jupyterhub -f /srv/jupyterhub/jupyterhub_config.py --debug
 
 volumes:
   data:
