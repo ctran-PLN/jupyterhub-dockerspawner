@@ -1,0 +1,22 @@
+{
+  "adr": {
+    "CLOUDSQL_USER": "",
+    "CLOUDSQL_PASSWORD": "",
+    "CLOUDSQL_HOST": "",
+    "CLOUDSQL_HOST_WRITE": "",
+    "CLOUDSQL_HOST_READ": "",
+    "CLOUDSQL_PORT": 3306
+  },
+  "acadia": {
+    "PMI_USER": "",
+    "PMI_PASSWORD": "",
+    "PMI_SQL_HOST": "",
+    "PMI_SQL_PORT": 3306
+  },
+  "communications": {
+    "PMT_USER": "",
+    "PMT_PASSWORD": "",
+    "PMT_SQL_HOST": "",
+    "PMT_SQL_PORT": 3306
+  }
+}
