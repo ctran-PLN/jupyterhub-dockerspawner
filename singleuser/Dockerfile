@@ -17,6 +17,8 @@ ENV CONDA_DIR /opt/conda
 ENV PRE_COMMIT /etc/jupyter/pre-commit
 ENV API_HOST ${API_HOST}
 ENV API_PORT ${API_PORT}
+ENV CONFIG_PATH /etc/jupyter/config_encrypted.json
+ENV CONFIG_KEY /etc/jupyter/config.key
 
 USER root
 RUN addgroup -S $NB_GID && \
@@ -39,6 +41,25 @@ echo "clean tmp files" && \
     rm -rf /home/$NB_USER/.cache/yarn && \
 nbdime extensions --enable
 
+USER root
+RUN addgroup -S $NB_GID && \
+    adduser -s /bin/bash -u $NB_UID -D $NB_USER && \
+    mkdir $HOME/work && \
+    chown -R $NB_USER:$NB_GID $HOME && \
+    chown -R $NB_USER:$NB_GID $CONDA_DIR && \
+    chown -R $NB_USER:$NB_GID /etc/jupyter/analytics_config && \
+    conda config --add channels conda-forge
+
+# sys packages
+RUN apk --update --no-cache add git bash
+
+USER $NB_UID
+RUN nbdime extensions --enable
+
+COPY ./analytics_config /etc/jupyter/analytics_config/
+RUN cd /etc/jupyter/analytics_config \
+    && python setup.py install
+
 USER $NB_UID
 WORKDIR $HOME
 
@@ -51,8 +72,9 @@ CMD ["start-notebook.sh"]
 # Add local files as late as possible to avoid cache busting
 ADD config/pre-commit $PRE_COMMIT
 COPY config/git-clone-hook $HOME/.profile
+COPY config/config_encrypted.json $CONFIG_PATH
+COPY config/config.key $CONFIG_KEY
 
 COPY start.sh /usr/local/bin/
 COPY start-notebook.sh /usr/local/bin/
 COPY start-singleuser.sh /usr/local/bin/
-#COPY jupyter_notebook_config.py /etc/jupyter/

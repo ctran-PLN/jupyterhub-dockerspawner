@@ -60,8 +60,11 @@ gen-cert:
 	-subj "/C=us/ST=va/L=fairfax/O=vibrent/OU= /CN= "
 	@mv jupyterhub.crt jupyterhub.key secrets/
 
-notebook_image: pull singleuser/Dockerfile
-	docker build  -t $(LOCAL_NOTEBOOK_IMAGE) --build-arg MY_USER=$(MY_USER) \
+gen-config-key:
+	python services/encrypt_config.py
+
+notebook_image: gen-config-key pull singleuser/Dockerfile
+	@docker build  -t $(LOCAL_NOTEBOOK_IMAGE) --build-arg MY_USER=$(MY_USER) \
 																					 --build-arg API_HOST=$(API_HOST) \
 																					 --build-arg API_PORT=$(API_PORT) \
 																					 singleuser
