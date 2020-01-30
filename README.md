@@ -9,29 +9,13 @@
 
 # jupyterhub-deploy-docker
 
-**jupyterhub-deploy-docker** provides a reference
-deployment of [JupyterHub](https://github.com/jupyter/jupyterhub), a
-multi-user [Jupyter Notebook](http://jupyter.org/) environment, on a
-**single host** using [Docker](https://docs.docker.com).  
-
-Possible **use cases** include:
-
-* Creating a JupyterHub demo environment that you can spin up relatively
-  quickly.
-* Providing a multi-user Jupyter Notebook environment for small classes,
-  teams, or departments.
-
-## Disclaimer
-
-This deployment is **NOT** intended for a production environment. 
-It is a reference implementation that does not meet traditional 
-requirements in terms of availability nor scalability. 
-
-If you are looking for a more robust solution to host JupyterHub, or
-you require scaling beyond a single host, please check out the
-excellent [zero-to-jupyterhub-k8s](https://github.com/jupyterhub/zero-to-jupyterhub-k8s)
-project.
-
+### Quick run
+```bash
+cd <your/repo/folder>
+make notebook_image  # will take some time
+make build
+docker-compose up
+```
 
 ## Technical Overview
 
@@ -40,9 +24,8 @@ Key components of this reference deployment are:
 * **Host**: Runs the [JupyterHub components](https://jupyterhub.readthedocs.org/en/latest/getting-started.html#overview)
   in a Docker container on the host.
 
-* **Authenticator**: Uses [OAuthenticator](https://github.com/jupyter/oauthenticator)
-  and [GitHub OAuth](https://developer.github.com/v3/oauth/) to
-  authenticate users.
+* **Authenticator**: Uses [LDAPAuthenticator](https://github.com/jupyterhub/ldapauthenticator)
+  further detail of setting up authentications can be found in [jupyterhub_config.py](https://github.com/ctran-vibrent/jupyterhub-dockerspawner/blob/master/jupyterhub_config.py)
 
 * **Spawner**:Uses [DockerSpawner](https://github.com/jupyter/dockerspawner)
   to spawn single-user Jupyter Notebook servers in separate Docker
@@ -54,7 +37,7 @@ Key components of this reference deployment are:
 * **Persistence of user notebook directories**: Persists user notebook
   directories in Docker volumes on the host.
 
-![JupyterHub single host Docker deployment](internal/jupyterhub-docker.png)
+![JupyterHub single host Docker deployment](internal/jupyterhub-docker.jpg)
 
 
 ## Prerequisites
@@ -67,6 +50,32 @@ required.
 
 1. Use [Docker's installation instructions](https://docs.docker.com/engine/installation/)
    to set up Docker for your environment.
+
+#### OR
+  ```bash
+  sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+  sudo yum install -y yum-utils \
+    device-mapper-persistent-data \
+    lvm2
+  sudo yum-config-manager \
+      --add-repo \
+      https://download.docker.com/linux/centos/docker-ce.repo
+  sudo yum install -y http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.107-3.el7.noarch.rpm --nogpgcheck
+  sudo yum install -y docker-ce
+  # install docker-compose
+  sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+  # add permission to $USER
+  sudo usermod -aG docker $USER
+  sudo systemctl start docker
+  ```
 
 2. To verify your docker installation, whether running docker as a local
    installation or using [docker-machine](./docs/docker-machine.md),
@@ -81,9 +90,6 @@ required.
 
 This deployment configures JupyterHub to use HTTPS. You must provide a
 certificate and key file in the JupyterHub configuration. To configure:
-
-1. Obtain the domain name that you wish to use for JupyterHub, for
-   example, `myfavoritesite.com` or `jupiterplanet.org`.
 
 1. If you do not have an existing certificate and key, you can:
 
@@ -106,42 +112,19 @@ certificate and key file in the JupyterHub configuration. To configure:
 
 ## Authenticator setup
 
-This deployment uses GitHub OAuth to authenticate users.
+This deployment uses JupyterHub LDAPAuthenticator.
 
-It requires that you create and register a [GitHub OAuth application](https://github.com/settings/applications/new)
-by filling out a form on the GitHub site:
-
-![GitHub OAuth application form](docs/oauth-form.png)
-
-In this form, you will specify the OAuth application's callback URL in
-this format: `https://<myhost.mydomain>/hub/oauth_callback`.
-
-After you submit the GitHub form, GitHub registers your OAuth application and
-assigns a unique Client ID and Client Secret. The Client Secret should be
-kept private.
-
-At JupyterHub's runtime, you must pass the GitHub OAuth Client ID, Client
-Secret and OAuth callback url. You can do this by either:
-
-- setting the `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and
-  `OAUTH_CALLBACK_URL` environment variables when you run the
-  JupyterHub container, or
-- add them to an `oauth.env` file in the `secrets` directory of this repository.
-  You may need to create both the `secrets` directory and the `oauth.env` file.
-  For example, add the following lines in the `oauth.env` file:
-
-  `oauth.env` file
+Detail of the configs can be found in[jupyterhub_config.py](https://github.com/ctran-vibrent/jupyterhub-dockerspawner/blob/master/jupyterhub_config.py), typically in this section:
+  ```bash
+  # Authenticate users with LDAP
+  c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
+  c.LDAPAuthenticator.server_address = 'ldap://<AD_ADDRESS>.awsvibhealth.local'
+  c.LDAPAuthenticator.server_port = <PORT> # default 389
+  # active directory
+  c.LDAPAuthenticator.bind_dn_template = 'AWSVIBHEALTH\{username}'
+  c.LDAPAuthenticator.user_search_base = 'OU=Users,OU=Environment,DC=awsvibhealth,DC=local'
+  c.LDAPAuthenticator.user_attribute = ''
   ```
-  GITHUB_CLIENT_ID=<github_client_id>
-  GITHUB_CLIENT_SECRET=<github_client_secret>
-  OAUTH_CALLBACK_URL=https://<myhost.mydomain>/hub/oauth_callback
-  ```
-
-  **Note:** The `oauth.env` file is a special file that Docker Compose uses
-  to lookup environment variables. If you choose to place the GitHub
-  OAuth application settings in this file, you should make sure that the
-  file remains private (be careful to not commit the `oauth.env` file with
-  these secrets to source control).
 
 
 ## Build the JupyterHub Docker image
@@ -151,15 +134,12 @@ build the Jupyter Notebook image in the next section.)
 
 1. Configure `userlist`: Create a `userlist` file of authorized JupyterHub
    users. The list should contain GitHub usernames, and this file should
-   designate at least one `admin` user. For instance, the example file below
-   contains three users, `jtyberg`, `jenny`, and `guido`, and one designated
-   administrator, `jtyberg`:
+   designate at least one `admin` user. For instance:
 
    `userlist` file
    ```
-   jtyberg admin
-   jenny
-   guido
+   ctran admin
+   jmehta admin
    ```
 
    The admin user will have the ability to add more users through JupyterHub's
