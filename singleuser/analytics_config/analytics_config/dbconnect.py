@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet
 import os
 import json
 
-admin_list=['ctran','jmehta']
+admin_list=['ctran','jmehta','bgivens','ssutherland','dkim']
 class DbConnect:
     """
     Description: Base Database connection class for extension to ANP, PMI and PMT connections
@@ -32,7 +32,7 @@ class DbConnect:
 
     def map_to_creds(self, sourceDb: str) -> tuple:
         data=self.parse_encrypted(sourceDb)
-        if sourceDb == 'pmi':
+        if sourceDb == 'anp':
             host= 'CLOUDSQL_HOST' if self.utype == 'Admin' else 'CLOUDSQL_HOST_READ'
             return (data['CLOUDSQL_USER'],
                     data['CLOUDSQL_PASSWORD'],
@@ -40,7 +40,7 @@ class DbConnect:
                     data['CLOUDSQL_PORT'],
                     data['CLOUDSQL_DB_NAME'])
 
-        if sourceDb == 'pmi-prd':
+        if sourceDb == 'pmi':
             return (data['PMI_USER'],
                     data['PMI_PASSWORD'],
                     data['PMI_SQL_HOST'],
