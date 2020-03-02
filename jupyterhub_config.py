@@ -58,15 +58,13 @@ c.DockerSpawner.notebook_dir = notebook_dir
 c.DockerSpawner.remove_containers = True
 # For debugging arguments passed to spawned containers
 c.DockerSpawner.debug = True
-
+c.DockerSpawner.hub_connect_ip = 'localhost'
 # User containers will access hub by container name on the Docker network
-c.JupyterHub.hub_ip = 'jupyterhub'
-c.JupyterHub.hub_port = 8080
+c.JupyterHub.hub_ip = '0.0.0.0'
+#c.JupyterHub.hub_port = 8000
 
-# TLS config
-c.JupyterHub.port = 443
-c.JupyterHub.ssl_key = os.environ['SSL_KEY']
-c.JupyterHub.ssl_cert = os.environ['SSL_CERT']
+c.JupyterHub.extra_log_file = '/var/log/jupyterhub.log'
+
 
 # Authenticate users with PAM
 #c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
@@ -95,7 +93,7 @@ c.JupyterHub.db_url = 'postgresql://postgres:{password}@{host}/{db}'.format(
 
 # shut down idle single-user notebook servers
 # default time: 30mins=30*60=1800
-'''
+
 hub_dir=os.environ['HUB_DIR']
 c.JupyterHub.services = [
     {
@@ -104,7 +102,7 @@ c.JupyterHub.services = [
         'command': [sys.executable, hub_dir+'services/cull_idle_servers.py', '--timeout=1800'],
     }
 ]
-'''
+
 # Whitlelist users and admins
 c.Authenticator.whitelist = whitelist
 c.Authenticator.admin_users = admin

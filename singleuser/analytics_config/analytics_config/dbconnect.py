@@ -55,15 +55,16 @@ class DbConnect:
                     data['PMT_SQL_COMM_DB_NAME'])
 
     def execute(self, query: str):
-        conn=self.connect()
+        conn=self.connect(needClose=False)
         with conn.begin() as conn:
             # begin() will invoke commit() or rollback()
             return conn.execute(query)
         # print('Check if connection closed:', conn.closed)
 
-    def connect(self) -> sqlalchemy.engine.base.Engine:
+    def connect(self, needClose=True) -> sqlalchemy.engine.base.Engine:
         if self.utype == 'Admin':
-            print('You are responsible for closing connections after query.')
+            if needClose:
+                print('You are responsible for closing connections after query.')
             creds=self.map_to_creds(self.sourceDb)
             return self._connect(creds)
 

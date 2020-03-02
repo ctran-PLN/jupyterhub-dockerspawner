@@ -10,8 +10,8 @@ ARG API_PORT
 
 # Configure environment
 ENV NB_USER ${MY_USER}
-ENV NB_UID 1001
-ENV NB_GID 1001
+ENV NB_UID 54321
+ENV NB_GID 54321
 ENV HOME /home/$NB_USER
 ENV CONDA_DIR /opt/conda
 ENV PRE_COMMIT /etc/jupyter/pre-commit
@@ -42,18 +42,6 @@ echo "clean tmp files" && \
 nbdime extensions --enable
 
 USER root
-RUN addgroup -S $NB_GID && \
-    adduser -s /bin/bash -u $NB_UID -D $NB_USER && \
-    mkdir $HOME/work && \
-    chown -R $NB_USER:$NB_GID $HOME && \
-    chown -R $NB_USER:$NB_GID $CONDA_DIR && \
-    chown -R $NB_USER:$NB_GID /etc/jupyter/analytics_config && \
-    conda config --add channels conda-forge
-
-# sys packages
-RUN apk --update --no-cache add git bash
-
-USER $NB_UID
 RUN nbdime extensions --enable
 
 COPY ./analytics_config /etc/jupyter/analytics_config/
@@ -78,3 +66,4 @@ COPY config/config.key $CONFIG_KEY
 COPY start.sh /usr/local/bin/
 COPY start-notebook.sh /usr/local/bin/
 COPY start-singleuser.sh /usr/local/bin/
+
