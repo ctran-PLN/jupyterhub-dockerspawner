@@ -41,8 +41,12 @@ echo "clean tmp files" && \
     rm -rf /home/$NB_USER/.cache/yarn && \
 nbdime extensions --enable
 
+# nbextensions
+RUN conda install -c conda-forge jupyter_contrib_nbextensions && \
+    jupyter contrib nbextension install --user && \
+    jupyter nbextension enable --py widgetsnbextension --sys-prefix
+
 USER root
-RUN nbdime extensions --enable
 
 COPY ./analytics_config /etc/jupyter/analytics_config/
 RUN cd /etc/jupyter/analytics_config \
