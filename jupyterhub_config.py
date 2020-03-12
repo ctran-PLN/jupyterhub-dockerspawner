@@ -19,6 +19,7 @@ class MyDockerSpawner(DockerSpawner):
 		}
 		if self.user.name in self.adminList:
 			self.volumes[os.environ['SHARED_VOLUME_NAME']] =  HOME + '/shared'
+			self.volumes[os.environ['UPLOAD_VOLUME_NAME']] =  HOME + '/UPLOAD'
 		return super().start()
 
 c = get_config()

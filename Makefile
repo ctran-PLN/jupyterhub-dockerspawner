@@ -26,6 +26,14 @@ RELEASE-volume:
 																																      --opt o=bind \
 																																			--name $(RELEASE_VOLUME_NAME)
 
+UPLOAD-volume:
+	@[ -d $(UPLOAD_DIR) ] || (sudo mkdir -p $(UPLOAD_DIR) && sudo chmod o=rx $(UPLOAD_DIR))
+	@docker volume inspect $(RELEASE_VOLUME_NAME) >/dev/null 2>&1 || docker volume create --opt type=none \
+																																      --opt device=$(UPLOAD_DIR) \
+																																      --opt o=bind \
+																																			--name $(UPLOAD_VOLUME_NAME)
+
+
 secrets/postgres.env:
 	@echo "Generating postgres password in $@"
 	@echo "POSTGRES_PASSWORD=$(shell openssl rand -hex 32)" > $@
@@ -69,7 +77,7 @@ notebook_image: gen-config-key pull singleuser/Dockerfile
 																					 --build-arg API_PORT=$(API_PORT) \
 																					 singleuser
 
-build: gen-cert check-files network volumes SHARED-volume RELEASE-volume
+build: gen-cert check-files network volumes SHARED-volume RELEASE-volume UPLOAD-volume
 	docker-compose build
 
 .PHONY: network volumes check-files pull notebook_image build
