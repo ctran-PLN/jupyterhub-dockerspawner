@@ -6,7 +6,9 @@
     "CLOUDSQL_HOST": "",
     "CLOUDSQL_HOST_WRITE": "",
     "CLOUDSQL_HOST_READ": "",
-    "CLOUDSQL_PORT": 3306
+    "CLOUDSQL_PORT": 3306,
+    "iterable_api_key_aou_project": "",
+    "slack_analytics_report": ""
   },
   "pmi": {
     "PMI_USER": "",
@@ -21,5 +23,6 @@
     "PMT_SQL_HOST": "",
     "PMT_SQL_PORT": 3306,
     "PMT_SQL_COMM_DB_NAME" : ""
-  }
+  },
+
 }

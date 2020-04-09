@@ -14,6 +14,8 @@ class DbConnect:
         self.username = os.environ['JUPYTERHUB_USER']
         self.utype = 'Admin' if (self.username in admin_list) else 'Regular'
         self.permission = ['read', 'write'] if self.utype == 'Admin' else ['read']
+        self.iterable_api_key_aou_project = None
+        self.slack_analytics_report = None
         print('You are the %s user, you have %s permission.' % (self.utype, ', '.join(self.permission)))
 
     def _connect(self, creds):
@@ -32,6 +34,8 @@ class DbConnect:
 
     def map_to_creds(self, sourceDb: str) -> tuple:
         data=self.parse_encrypted(sourceDb)
+        self.iterable_api_key_aou_project = data['iterable_api_key_aou_project']
+        self.slack_analytics_report = data['slack_analytics_report']
         if sourceDb == 'anp':
             host= 'CLOUDSQL_HOST' if self.utype == 'Admin' else 'CLOUDSQL_HOST_READ'
             return (data['CLOUDSQL_USER'],
