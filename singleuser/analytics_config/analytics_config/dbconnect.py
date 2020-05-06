@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet
 import os
 import json
 
-admin_list=['ctran','jmehta','bgivens','ssutherland','dkim']
+admin_list=['ctran','jmehta','bgivens','ssutherland','dkim', 'xhu']
 class DbConnect:
     """
     Description: Base Database connection class for extension to ANP, PMI and PMT connections
